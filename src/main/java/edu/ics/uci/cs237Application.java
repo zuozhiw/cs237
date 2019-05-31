@@ -1,9 +1,17 @@
 package edu.ics.uci;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.dirkraft.dropwizard.fileassets.FileAssetsBundle;
+import edu.ics.uci.core.TutorBean;
 import edu.ics.uci.resources.HelloWorldResource;
+import edu.ics.uci.resources.TutorResource;
 import io.dropwizard.Application;
+import io.dropwizard.jdbi3.JdbiFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import okhttp3.OkHttpClient;
+import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.core.mapper.reflect.ConstructorMapper;
 
 public class cs237Application extends Application<cs237Configuration> {
 
@@ -19,13 +27,27 @@ public class cs237Application extends Application<cs237Configuration> {
     @Override
     public void initialize(final Bootstrap<cs237Configuration> bootstrap) {
         // TODO: application initialization
+        bootstrap.addBundle(new FileAssetsBundle("./gui/", "/", "index.html"));
+
     }
 
     @Override
     public void run(final cs237Configuration configuration,
                     final Environment environment) {
-        final HelloWorldResource resource = new HelloWorldResource();
-        environment.jersey().register(resource);
+        // serve backend at /api
+        environment.jersey().setUrlPattern("/api/*");
+
+        final JdbiFactory factory = new JdbiFactory();
+        final Jdbi jdbi = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
+
+        OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
+
+        final HelloWorldResource helloWorldResource = new HelloWorldResource();
+        environment.jersey().register(helloWorldResource);
+
+        final TutorResource tutorResource = new TutorResource(jdbi, okHttpClient);
+        environment.jersey().register(tutorResource);
+
         // TODO: implement application
     }
 
