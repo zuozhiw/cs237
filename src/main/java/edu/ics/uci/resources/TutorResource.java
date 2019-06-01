@@ -6,16 +6,11 @@ import edu.ics.uci.core.TippersResponse;
 import edu.ics.uci.core.TutorBean;
 import edu.ics.uci.db.TutorDAO;
 import okhttp3.OkHttpClient;
-import okhttp3.OkHttpClient.Builder;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.jdbi.v3.core.Jdbi;
-import org.jdbi.v3.core.mapper.reflect.ConstructorMapper;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +38,22 @@ public class TutorResource {
     }
 
     @GET
+    @Path("/getTutor")
+    public TutorBean getTutor(@QueryParam("email_id") Optional<String> email_id) {
+        TutorDAO tutorDAO = jdbi.onDemand(TutorDAO.class);
+        return tutorDAO.findTutor(email_id.get());
+    }
+
+    @GET
+    @Path("/listAllSkills")
+    public List<String> listAllSkills() {
+        return jdbi.withHandle(handle ->
+                handle.createQuery("select value from config where keyword = 'skill'")
+                        .mapTo(String.class)
+                        .list());
+    }
+
+    @GET
     @Path("/find")
     public List<TutorBean> findAvailableTutorsWithSkill(@QueryParam("skill") Optional<String> skill) {
         TutorDAO tutorDAO = jdbi.onDemand(TutorDAO.class);
@@ -52,6 +63,27 @@ public class TutorResource {
             return tutorDAO.listAllTutors();
         }
     }
+
+    @DELETE
+    @Path("/deleteTutor")
+    public void deleteTutor(@FormParam("email_id") Optional<String> email_id) {
+        TutorDAO tutorDAO = jdbi.onDemand(TutorDAO.class);
+        tutorDAO.deleteTutor(email_id.get());
+    }
+
+    @POST
+    @Path("/insertTutor")
+    public void insertTutor(@FormParam("email_id") Optional<String> email_id, @FormParam("skills") Optional<String> skills, @FormParam("available") Optional<Boolean> available) {
+        TutorDAO tutorDAO = jdbi.onDemand(TutorDAO.class);
+        tutorDAO.insertTutor(email_id.get(), skills.get(), available.get());
+    }
+    @POST
+    @Path("/updateTutor")
+    public void updateTutor(@FormParam("email_id") Optional<String> email_id, @FormParam("skills") Optional<String> skills, @FormParam("available") Optional<Boolean> available) {
+        TutorDAO tutorDAO = jdbi.onDemand(TutorDAO.class);
+        tutorDAO.updateTutor(email_id.get(), skills.get(), available.get());
+    }
+
 
     @GET
     @Path("/reserve")
@@ -70,6 +102,7 @@ public class TutorResource {
 
         // return the chosen candidate
 
+        //implement pub sub to notify tutor when he is reserved
         throw new UnsupportedOperationException("not implemented");
     }
 

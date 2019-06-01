@@ -1,7 +1,12 @@
-var HOST = "http://localhost:8888"
-var SENSORAHOST = "http://sensoria.ics.uci.edu:8059";
-var SENSORAUCIHOST = "http://sensoria.ics.uci.edu:9001";
+//html file first asks user to confirm identity if in tippers
+//if not in tippers ask user to
+//once confirmed check database to see if user is a tutor or student
+//if tutor retrieve his skills
+//if student, ask if he wants to become a tutor
+//for any user search
 
+
+var HOST = "http://localhost:8080/api/tutor/"
 
 function sameDay(d1, d2) {
   return d1.getFullYear() === d2.getFullYear() &&
@@ -41,7 +46,7 @@ var TutorViewModel = function(data) {
     	if(document.getElementById("email").validity.valid){
     		self.loadTutorData(vm.email());	
     		self.getDropdownValues();
-    	}    	
+    	}
     }
 
     this.toggleEdit = function(vm){
@@ -52,32 +57,43 @@ var TutorViewModel = function(data) {
     this.loadTutorData = (function(email){
 	    var t = this;
 		$.ajax({
-			'url': HOST + "/index.php?getTutor=" + email,
+			'url': HOST + "getTutor?email_id=" + email,
 			'type': 'GET',
 			'dataType': "json",
 			'success': function(data) {
 				t.userFound(true);
+				//if not found then prompt user to be tippers user
 				if(data && data.skills){
-					t.skills(data.skills);
+					t.skills(data.skills.split(","));
 					t.available(data.available);
-					t.skillsToUpdate(data.skills);
-					t.visibility(data.available);
+					t.skillsToUpdate(data.skills.split(","));
+					t.visibility(true);
 					t.selectedSkills([]);
 					t.skillToAdd("");
 				}else{
 					t.available(false);
 					t.visibility(false);
 				}
-			}
+				},
+			'error': function(data){
+					t.userFound(true);
+			        t.editTutorMode(false);
+                    t.skills([]);
+                    t.available(false);
+                    t.skillsToUpdate([]);
+                    t.visibility(false);
+                    t.selectedSkills([]);
+                    t.skillToAdd("");
+                    }
 		});
     }).bind(this);
 
     this.removeTutor = (function(){
 	    var t = this;
 		$.ajax({
-			'url': HOST + "/removeTutor.php",
-			'type': 'POST',
-			'data': {emailID:t.email()},
+			'url': HOST + "deleteTutor",
+			'type': 'DELETE',
+			'data': {email_id:t.email()},
 			'success': function(data) {
 				t.editTutorMode(false);
 				t.skills([]);
@@ -86,7 +102,8 @@ var TutorViewModel = function(data) {
 				t.visibility(false);
 				t.selectedSkills([]);
 				t.skillToAdd("");
-				t.successMsg("You have successfully deregistered yourself as tutor");
+				t.userFound(true);
+				t.successMsg("You have successfully unregistered yourself as tutor");
 			},
 			'error':function(){
 				window.alert('something went wrong!');
@@ -108,38 +125,38 @@ var TutorViewModel = function(data) {
 
     this.addOrUpdateTutor = (function(){
     	var payload = {
-    		"emailID":this.email(),
-    		"available":this.visibility(),
-    		"skills":this.skillsToUpdate()
+    		"email_id":this.email(),
+    		"skills":this.skillsToUpdate().join(","),
+    		"available":this.available()
     	}
     	var t = this;
     	var ajaxObj = {
-			'url': HOST + "/insertTutor.php",
+			'url': HOST + "insertTutor",
 			'type': 'POST',
 			'dataType': "json",
 			'data':payload,
-			'success': function(data) {
+			'error': function(data) {
 				t.userFound(true);
-				if(data.skills){
+				if(data){
 					if(t.available() == true)
 						t.successMsg("You have successfully updated your details");
 					else
 						t.successMsg("You have successfully added yourself as tutor");
-					t.skills(data.skills);
+					t.skills(data.skills.split(","));
 					t.available(data.available);
-					t.skillsToUpdate(data.skills);
-					t.visibility(data.available);
+					t.skillsToUpdate(data.skills.split(","));
+					t.visibility(false);
 					t.selectedSkills([]);
 					t.skillToAdd("");
 				}else{
 					t.available(false);
 					t.visibility(false);
 				}
-				t.editTutorMode(false);
+				    t.enterUser(t);
 			}
 		}
     	if(this.available() == true){
-    		ajaxObj.url = HOST + "/updateTutor.php";
+    		ajaxObj.url = HOST + "updateTutor";
     		//ajaxObj.type = "PUT";
     	}
 
@@ -151,7 +168,7 @@ var TutorViewModel = function(data) {
     this.getDropdownValues = (function(){
     	var t = this;
     	$.ajax({
-				'url': HOST + "/index.php?getDropdown=skill",
+				'url': HOST + "listAllSkills",
 				'type': 'GET',
 				'dataType': "json",
 				'success': function(data) {
@@ -170,7 +187,7 @@ var TutorViewModel = function(data) {
     	t.availableTutorsObj({});
     	if(this.searchSkill() != ""){
     		$.ajax({
-				'url': HOST + "/index.php?getAvailableTutors=" + this.searchSkill(),
+				'url': HOST + "find?skill=" + this.searchSkill(),
 				'type': 'GET',
 				'dataType': "json",
 				'success': function(data) {
@@ -191,71 +208,6 @@ var TutorViewModel = function(data) {
     	}
     }).bind(this);
 
-    this.reserveTutor = (function(vm){
-    	var t = this;
-    	var payload = {
-    		"emailID":vm.email,
-		"skill": this.searchSkill()
-    	};
-    	$.ajax({
-			'url': HOST + '/reserveTutor.php',
-			'type': 'POST',
-			'dataType': "json",
-			'data':payload,
-			'success': function(data) {
-				if(data.success == false){
-					alert("Sorry! Looks like the tutor is unavailable");
-				}else{
-					t.tutorMsg("You have reserved "+ payload.emailID + " successfully");
-					t.availableTutorsObj({});
-				}				
-			},
-			'error':function(){
-				// Do nothing.
-			}
-		});
-    }).bind(this);
-
-    this.getLocationOfUsers = (function(subject,deployment){
-    	var t = this;
-    	$.ajax({
-			'url': (deployment ? SENSORAHOST : SENSORAUCIHOST) + "/semanticobservation/getLast?subject_id=" + subject +"&limit=1&region=true",
-			'type': 'GET',
-			'dataType': "json",
-			'success': function(data) {
-				if(data && data.length > 0){
-					var res = data[0];
-					var tutors = t.availableTutorsObj();
-					var obj = res.payload;
-					if(res.timestamp){
-						var resDate = new Date(res.timestamp);
-						var t2 = resDate.getTime();
-						if(sameDay(resDate,new Date())){
-							if(tutors[subject]){
-								sub = t.availableTutorsObj()[subject];
-								var t1 = new Date(sub.timestamp).getTime();
-								if(t1 >= t2){
-									obj = sub;
-								}else{
-									obj.timestamp = res.timestamp;
-									obj.email = subject;
-								}
-							}else{
-								obj.timestamp = res.timestamp;
-								obj.email = subject;
-							}
-							tutors[subject]	= obj;
-							t.availableTutorsObj(tutors);	
-						}	
-					}					
-				}
-			},
-			'error':function(){
-				// Do nothing.
-			}
-		});
-    });
-	
     if(sessionStorage.email){
     	document.getElementById('email').value = sessionStorage.email;
     	this.email(sessionStorage.email);
