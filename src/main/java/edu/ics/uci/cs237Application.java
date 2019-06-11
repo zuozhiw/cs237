@@ -5,10 +5,12 @@ import com.github.dirkraft.dropwizard.fileassets.FileAssetsBundle;
 import edu.ics.uci.core.TutorBean;
 import edu.ics.uci.resources.HelloWorldResource;
 import edu.ics.uci.resources.TutorResource;
+import edu.ics.uci.resources.WebSocketTest;
 import io.dropwizard.Application;
 import io.dropwizard.jdbi3.JdbiFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.dropwizard.websockets.WebsocketBundle;
 import okhttp3.OkHttpClient;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.mapper.reflect.ConstructorMapper;
@@ -28,7 +30,7 @@ public class cs237Application extends Application<cs237Configuration> {
     public void initialize(final Bootstrap<cs237Configuration> bootstrap) {
         // TODO: application initialization
         bootstrap.addBundle(new FileAssetsBundle("./gui/", "/", "index.html"));
-
+        bootstrap.addBundle(new WebsocketBundle(WebSocketTest.class));
     }
 
     @Override
