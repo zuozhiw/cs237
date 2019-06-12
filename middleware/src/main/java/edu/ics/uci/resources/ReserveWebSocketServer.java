@@ -189,7 +189,7 @@ public class ReserveWebSocketServer {
                 Thread.sleep(10000);
 
                 //TODO: Check if current request is complete
-                
+
 
                 //TODO: If complete, break. Otherwise continue
                 iterations++;
