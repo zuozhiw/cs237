@@ -31,7 +31,7 @@ public class cs237Application extends Application<cs237Configuration> {
     public void initialize(final Bootstrap<cs237Configuration> bootstrap) {
         // TODO: application initialization
         bootstrap.addBundle(new FileAssetsBundle("../gui/", "/", "index.html"));
-        bootstrap.addBundle(new WebsocketBundle(WebSocketTest.class, WebSocketServer.class));
+        bootstrap.addBundle(new WebsocketBundle(WebSocketServer.class));
     }
 
     @Override

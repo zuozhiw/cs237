@@ -11,7 +11,7 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.HashMap;
 
-@ServerEndpoint("api/wsserv")
+@ServerEndpoint("/api/wsserv")
 public class WebSocketServer {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
