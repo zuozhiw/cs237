@@ -30,7 +30,7 @@ public class TutorResource {
     private Jdbi jdbi;
     private OkHttpClient okHttpClient;
 
-    private List<String> randomPoints = Arrays.asList("-117.841989,33.643161",
+    public static List<String> randomPoints = Arrays.asList("-117.841989,33.643161",
             "-117.841968,33.643054","-117.841721,33.643242", "-117.843356,33.643414",
             "-117.843524,33.643407", "-117.843588,33.64342", "-117.828206,33.643422",
             "-117.827527,33.643288", "-117.827672,33.643708", "-117.841897,33.644132",
