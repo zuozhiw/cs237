@@ -1,0 +1,63 @@
+package edu.ics.uci.resources;
+
+import edu.ics.uci.core.MockTippersPayload;
+import edu.ics.uci.core.MockTippersResponse;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+@Path("/semanticobservation")
+@Produces(MediaType.APPLICATION_JSON)
+public class MockTIPPERSResource {
+
+    int counter;
+    public Map<String, MockTippersPayload> tippersStore = new TreeMap<>();
+
+    public MockTIPPERSResource(){
+        counter = 0;
+        tippersStore.put("student1@uci.edu", new MockTippersPayload("ISG", 2060, 2, "DBH"));
+        tippersStore.put("student2@uci.edu", new MockTippersPayload("ISG", 2040, 2, "DBH"));
+        tippersStore.put("student3@uci.edu", new MockTippersPayload("ICS", 180, 1, "ICS"));
+        tippersStore.put("abc@ics.uci.edu", new MockTippersPayload( "Conference", 6011, 6, "DBH"));
+        tippersStore.put("def@ics.uci.edu", new MockTippersPayload("Student Affairs", 352, 3, "ICS"));
+        tippersStore.put("ghi@ics.uci.edu", new MockTippersPayload("Lecture Hall", 1200, 1, "PCB"));
+        tippersStore.put("jkl@uci.edu", new MockTippersPayload("SH", 128, 1, "SH"));
+        tippersStore.put("mno@uci.edu", new MockTippersPayload("ARC", 100, 1, "ARC"));
+    }
+
+    @GET
+    @Path("/getLast")
+    public List<MockTippersResponse> semanticObservation_getLast(@QueryParam("subject_id") Optional<String> subject_id,
+                                                                 @QueryParam("limit") Optional<Integer> limit,
+                                                                 @QueryParam("region") Optional<Boolean> region){
+        //
+        List<MockTippersResponse> ret = new ArrayList<>();
+
+        if (!subject_id.isPresent()||!tippersStore.containsKey(subject_id.get())){
+            return ret;
+        }
+
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+
+        MockTippersResponse response = new MockTippersResponse(
+          tippersStore.get(subject_id.get()),
+          0.50,
+          counter,
+          1,
+                formatter.format(new Date())
+        );//.toString();
+
+        ret.add(response);
+
+        counter++;
+
+        return ret;
+
+    }
+
+}

@@ -29,15 +29,13 @@ public class cs237Application extends Application<cs237Configuration> {
     @Override
     public void initialize(final Bootstrap<cs237Configuration> bootstrap) {
         // TODO: application initialization
-        bootstrap.addBundle(new FileAssetsBundle("./gui/", "/", "index.html"));
+        bootstrap.addBundle(new FileAssetsBundle("../gui/", "/", "index.html"));
         bootstrap.addBundle(new WebsocketBundle(WebSocketTest.class));
     }
 
     @Override
     public void run(final cs237Configuration configuration,
                     final Environment environment) {
-        // serve backend at /api
-        environment.jersey().setUrlPattern("/api/*");
 
         final JdbiFactory factory = new JdbiFactory();
         final Jdbi jdbi = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");

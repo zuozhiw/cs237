@@ -20,7 +20,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Optional;
 
-@Path("/tutor")
+@Path("/api/tutor")
 @Produces(MediaType.APPLICATION_JSON)
 public class TutorResource {
 
