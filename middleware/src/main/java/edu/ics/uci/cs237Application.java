@@ -1,6 +1,7 @@
 package edu.ics.uci;
 
 import com.github.dirkraft.dropwizard.fileassets.FileAssetsBundle;
+import edu.ics.uci.core.BuildingLocations;
 import edu.ics.uci.resources.HelloWorldResource;
 import edu.ics.uci.resources.ReserveWebSocketServer.ReserveWebSocketServerConfigurator;
 import edu.ics.uci.resources.TutorResource;
@@ -60,6 +61,8 @@ public class cs237Application extends Application<cs237Configuration> {
                 .build()
         );
 
+        ReserveWebSocketServer.okHttpClient = okHttpClient;
+        BuildingLocations.init();
         // TODO: implement application
     }
 

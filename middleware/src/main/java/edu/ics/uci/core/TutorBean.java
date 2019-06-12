@@ -1,6 +1,7 @@
 package edu.ics.uci.core;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 
@@ -101,5 +102,17 @@ public class TutorBean {
     @Override
     public int hashCode() {
         return Objects.hash(email_id, skills, reserved, available, score, coordinates);
+    }
+
+    public double getCurrentScore(){
+        if (this.reserved==null){
+            return 20.0;
+        }
+        LocalDateTime currentLocalDateTime = LocalDateTime.now();
+        LocalDateTime tempDateTime = LocalDateTime.from(this.reserved);
+        long hours = tempDateTime.until(currentLocalDateTime, ChronoUnit.HOURS);
+        double currentTutorScore = this.score-(hours*10.0)+20.0;
+        if (currentTutorScore < 20.0) currentTutorScore = 20.0;
+        return currentTutorScore;
     }
 }

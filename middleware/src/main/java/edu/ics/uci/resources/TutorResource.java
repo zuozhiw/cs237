@@ -2,7 +2,6 @@ package edu.ics.uci.resources;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import edu.ics.uci.core.ReserveSessionState;
 import edu.ics.uci.core.TippersResponse;
 import edu.ics.uci.core.TutorBean;
@@ -15,12 +14,9 @@ import org.jdbi.v3.core.Jdbi;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static edu.ics.uci.resources.ReserveWebSocketServer.reserveSessionSemaphore;
@@ -172,11 +168,11 @@ public class TutorResource {
                 System.out.println(responseString);
                 if (responseString.equals("Lock acquired")){
                     TutorDAO tutorDAO = jdbi.onDemand(TutorDAO.class);
-                    //TODO: Obtain previous tutor score, calculate next tutor score
+                    TutorBean tutorBean = tutorDAO.findTutor(ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).getSelectedTutorEmail());
 
-                    double nextTutorScore = 0.0;
+                    double nextTutorScore = tutorBean.getScore();
                     tutorDAO.updateTutorAvailability(ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).getSelectedTutorEmail(),
-                            nextTutorScore, false);
+                            nextTutorScore, true, tutorBean.getReserved());
                     Request request2 = new Request.Builder()
                             .url(MUTUAL_EXCLUSION_MODULE_HOST+"/api/token/release")
                             .build();
@@ -221,10 +217,26 @@ public class TutorResource {
                             System.out.println(responseString);
                             if (responseString.equals("Lock acquired")){
                                 TutorDAO tutorDAO = jdbi.onDemand(TutorDAO.class);
-                                //TODO: Obtain previous tutor score, calculate next tutor score
 
-                                double nextTutorScore = 0.0;
-                                tutorDAO.updateTutorAvailability(tutorEmail.get(), nextTutorScore, true);
+                                TutorBean tutorBean = tutorDAO.findTutor(tutorEmail.get());
+                                if (tutorBean.getAvailable()){
+                                    //TODO: Obtain previous tutor score, calculate next tutor score
+                                    double nextTutorScore = tutorBean.getCurrentScore();
+                                    /*
+                                    if (tutorBean.getReserved()==null){
+                                        nextTutorScore = 20.0;
+                                    }else{
+                                        LocalDateTime currentLocalDateTime = LocalDateTime.now();
+                                        LocalDateTime tempDateTime = LocalDateTime.from(tutorBean.getReserved());
+                                        long hours = tempDateTime.until(currentLocalDateTime, ChronoUnit.HOURS);
+                                        nextTutorScore = tutorBean.getScore()-(hours*10.0)+20.0;
+                                        if (nextTutorScore < 20.0) nextTutorScore = 20.0;
+                                    }*/
+
+                                    tutorDAO.updateTutorAvailability(tutorEmail.get(), nextTutorScore, false, LocalDateTime.now());
+                                }else{
+
+                                }
 
                                 Request request2 = new Request.Builder()
                                         .url(MUTUAL_EXCLUSION_MODULE_HOST+"/api/token/release")
@@ -235,13 +247,20 @@ public class TutorResource {
                                 }catch(IOException e){
 
                                 }
-                                ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).setCompleted();
-                                ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).setSelectedTutorEmail(tutorEmail.get());
-                                //TEST ONLY
-                                ReserveWebSocketServer.websocketSessionMap.get(ReserveWebSocketServer.userWebSocketMap.get(userEmail.get())).getAsyncRemote().sendText(tutorEmail.get());
 
-                                reserveSessionSemaphore.release();
-                                return "Success";
+                                if (tutorBean.getAvailable()){
+                                    ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).setCompleted();
+                                    ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).setSelectedTutorEmail(tutorEmail.get());
+                                    //TEST ONLY
+                                    ReserveWebSocketServer.websocketSessionMap.get(ReserveWebSocketServer.userWebSocketMap.get(userEmail.get())).getAsyncRemote().sendText(tutorEmail.get());
+                                    reserveSessionSemaphore.release();
+                                    return "Success";
+                                }else{
+                                    reserveSessionSemaphore.release();
+                                    return "Failed";
+                                }
+
+
                             }else{
                                 //Failed to acquire lock on tutorsDB
                                 reserveSessionSemaphore.release();
