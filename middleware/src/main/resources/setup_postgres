@@ -1,0 +1,36 @@
+create database tutoring;
+
+\c tutoring
+
+CREATE TABLE config (
+ keyword text NOT NULL,
+ value text NOT NULL
+);
+
+INSERT INTO config (keyword, value) VALUES
+('skill', 'Database'),
+('skill', 'English Writing'),
+('skill', 'Machine Learning'),
+('skill', 'AI'),
+('skill', 'English Speaking'),
+('skill', 'Math'),
+('location', 'DBH'),
+('location', 'Campus'),
+('skill', 'NLP'),
+('skill', 'Software Engineering');
+
+CREATE TABLE tutor(
+ email_id text NOT NULL,
+ skills text NOT NULL,
+ reserved timestamp DEFAULT NULL,
+ available boolean NOT NULL,
+ score double precision not NULL,
+PRIMARY KEY (email_id));
+
+insert into tutor values ('salsudai@uci.edu', 'Database', null, true, 0);
+insert into tutor values ('sadeem.alsudais@gmail.com', 'AI,Database', null, true, 0);
+insert into tutor values ('zuozhiw@uci.edu', 'Database', current_timestamp, false, 0);
+insert into tutor values ('avinask1@uci.edu', 'Database,English Speaking', current_timestamp, false, 0);
+insert into tutor values ('baiqiushi@gmail.com', 'NLP,Database', current_timestamp, true, 0);
+create user tutor with password 'tutor' createdb;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO tutor;

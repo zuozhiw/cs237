@@ -44,6 +44,8 @@ public class cs237Application extends Application<cs237Configuration> {
         final JdbiFactory factory = new JdbiFactory();
         final Jdbi jdbi = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
 
+        environment.jersey().setUrlPattern("/api");
+
         OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
 
         final HelloWorldResource helloWorldResource = new HelloWorldResource();
@@ -55,7 +57,8 @@ public class cs237Application extends Application<cs237Configuration> {
         websocketBundle.addEndpoint(ServerEndpointConfig.Builder
                 .create(ReserveWebSocketServer.class, "/api/reserve-ws")
                 .configurator(new ReserveWebSocketServerConfigurator(jdbi))
-        .build());
+                .build()
+        );
 
         // TODO: implement application
     }

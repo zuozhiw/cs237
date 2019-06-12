@@ -1,6 +1,7 @@
 package edu.ics.uci.core;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 public class TutorBean {
@@ -9,12 +10,27 @@ public class TutorBean {
     private String skills;
     private LocalDateTime reserved;
     private Boolean available;
+    private Double score;
+    private List<Double> coordinates;
 
-    public TutorBean(String email_id, String skills, LocalDateTime reserved, Boolean available) {
+    public TutorBean() {
+    }
+
+    public List<Double> getCoordinates() {
+        return coordinates;
+    }
+
+    public void setCoordinates(List<Double> coordinates) {
+        this.coordinates = coordinates;
+    }
+
+    public TutorBean(String email_id, String skills, LocalDateTime reserved, Boolean available, Double score, List<Double> coordinate) {
         this.email_id = email_id;
         this.skills = skills;
         this.reserved = reserved;
         this.available = available;
+        this.score = score;
+        this.coordinates = coordinate;
     }
 
     public String getEmail_id() {
@@ -49,6 +65,14 @@ public class TutorBean {
         this.available = available;
     }
 
+    public Double getScore() {
+        return score;
+    }
+
+    public void setScore(Double score) {
+        this.score = score;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -57,12 +81,9 @@ public class TutorBean {
         return Objects.equals(email_id, tutorBean.email_id) &&
                 Objects.equals(skills, tutorBean.skills) &&
                 Objects.equals(reserved, tutorBean.reserved) &&
-                Objects.equals(available, tutorBean.available);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(email_id, skills, reserved, available);
+                Objects.equals(available, tutorBean.available) &&
+                Objects.equals(score, tutorBean.score) &&
+                Objects.equals(coordinates, tutorBean.coordinates);
     }
 
     @Override
@@ -72,6 +93,13 @@ public class TutorBean {
                 ", skills='" + skills + '\'' +
                 ", reserved=" + reserved +
                 ", available=" + available +
+                ", score=" + score +
+                ", coordinates=" + coordinates +
                 '}';
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email_id, skills, reserved, available, score, coordinates);
     }
 }
