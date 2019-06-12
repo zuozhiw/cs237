@@ -7,11 +7,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>edu.ics.uci</groupId>
-    <artifactId>cs237</artifactId>
+    <artifactId>cs237-pubsub</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>cs237</name>
+    <name>cs237-pubsub</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -37,30 +37,11 @@
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-core</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/io.dropwizard/dropwizard-jdbi3 -->
         <dependency>
-            <groupId>io.dropwizard</groupId>
-            <artifactId>dropwizard-jdbi3</artifactId>
-            <version>1.3.12</version>
+            <groupId>com.liveperson</groupId>
+            <artifactId>dropwizard-websockets</artifactId>
+            <version>1.3.2</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.dirkraft.dropwizard</groupId>
-            <artifactId>dropwizard-file-assets</artifactId>
-            <version>0.0.2</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.2.5</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>3.14.2</version>
-        </dependency>
-
     </dependencies>
 
     <build>
