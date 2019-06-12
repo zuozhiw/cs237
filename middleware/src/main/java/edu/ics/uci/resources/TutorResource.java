@@ -3,6 +3,7 @@ package edu.ics.uci.resources;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import edu.ics.uci.core.ReserveSessionState;
 import edu.ics.uci.core.TippersResponse;
 import edu.ics.uci.core.TutorBean;
 import edu.ics.uci.db.TutorDAO;
@@ -13,12 +14,16 @@ import org.jdbi.v3.core.Jdbi;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static edu.ics.uci.resources.ReserveWebSocketServer.reserveSessionSemaphore;
 
 @Path("/tutor")
 @Produces(MediaType.APPLICATION_JSON)
@@ -26,6 +31,8 @@ public class TutorResource {
 
     public static final String SENSORAHOST = "http://sensoria.ics.uci.edu:8059";
     public static final String SENSORAUCIHOST = "http://sensoria.ics.uci.edu:9001";
+
+    public static final String MUTUAL_EXCLUSION_MODULE_HOST = "http://localhost:8180";
 
     private Jdbi jdbi;
     private OkHttpClient okHttpClient;
@@ -152,6 +159,119 @@ public class TutorResource {
         }
     }
 
+    @GET
+    @Path("/terminate")
+    public String terminateTutorReservation(@QueryParam("userEmail") Optional<String> userEmail){
+        if (userEmail.isPresent()&&ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).getSelectedTutorEmail()!=null){
+            Request request = new Request.Builder()
+                    .url(MUTUAL_EXCLUSION_MODULE_HOST+"/api/token/acquire")
+                    .build();
+            try {
+                Response response = okHttpClient.newCall(request).execute();
+                String responseString = response.body().string();
+                System.out.println(responseString);
+                if (responseString.equals("Lock acquired")){
+                    TutorDAO tutorDAO = jdbi.onDemand(TutorDAO.class);
+                    //TODO: Obtain previous tutor score, calculate next tutor score
 
+                    double nextTutorScore = 0.0;
+                    tutorDAO.updateTutorAvailability(ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).getSelectedTutorEmail(),
+                            nextTutorScore, false);
+                    Request request2 = new Request.Builder()
+                            .url(MUTUAL_EXCLUSION_MODULE_HOST+"/api/token/release")
+                            .build();
+                    try{
+                        Response response2 =okHttpClient.newCall(request2).execute();
+                        System.out.println(response2.body().string());
+                    }catch(IOException e){
+
+                    }
+                    ReserveWebSocketServer.reserveSessionMap.remove(userEmail.get());
+                    //TEST ONLY
+                    ReserveWebSocketServer.websocketSessionMap.get(ReserveWebSocketServer.userWebSocketMap.get(userEmail.get())).getAsyncRemote().sendText("Session Terminated");
+                    return "Success";
+                }else{
+                    return "Failed";
+                }
+            }catch(IOException e){
+                //Failed to acquire lock on tutorsDB
+                return "Failed";
+            }
+        }else{
+            return "Invalid Parameters";
+        }
+    }
+
+    @GET
+    @Path("/accept")
+    public String acceptTutorReservation(@QueryParam("tutorEmail") Optional<String> tutorEmail,
+                                         @QueryParam("userEmail") Optional<String> userEmail){
+        if(tutorEmail.isPresent()&&userEmail.isPresent()&&ReserveWebSocketServer.reserveSessionMap.containsKey(userEmail.get())){
+            try {
+                boolean success = reserveSessionSemaphore.tryAcquire(1000, TimeUnit.MILLISECONDS);
+                if (success){
+                    ReserveSessionState reserveSessionState = ReserveWebSocketServer.reserveSessionMap.get(userEmail.get());
+                    if (!reserveSessionState.isCompleted()){
+                        Request request = new Request.Builder()
+                                .url(MUTUAL_EXCLUSION_MODULE_HOST+"/api/token/acquire")
+                                .build();
+                        try{
+                            Response response = okHttpClient.newCall(request).execute();
+                            String responseString = response.body().string();
+                            System.out.println(responseString);
+                            if (responseString.equals("Lock acquired")){
+                                TutorDAO tutorDAO = jdbi.onDemand(TutorDAO.class);
+                                //TODO: Obtain previous tutor score, calculate next tutor score
+
+                                double nextTutorScore = 0.0;
+                                tutorDAO.updateTutorAvailability(tutorEmail.get(), nextTutorScore, true);
+
+                                Request request2 = new Request.Builder()
+                                        .url(MUTUAL_EXCLUSION_MODULE_HOST+"/api/token/release")
+                                        .build();
+                                try{
+                                    Response response2 =okHttpClient.newCall(request2).execute();
+                                    System.out.println(response2.body().string());
+                                }catch(IOException e){
+
+                                }
+                                ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).setCompleted();
+                                ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).setSelectedTutorEmail(tutorEmail.get());
+                                //TEST ONLY
+                                ReserveWebSocketServer.websocketSessionMap.get(ReserveWebSocketServer.userWebSocketMap.get(userEmail.get())).getAsyncRemote().sendText(tutorEmail.get());
+
+                                reserveSessionSemaphore.release();
+                                return "Success";
+                            }else{
+                                //Failed to acquire lock on tutorsDB
+                                reserveSessionSemaphore.release();
+                                return "Failed";
+                            }
+
+                        }catch(IOException e){
+                            //Failed to acquire lock on tutorsDB
+                            reserveSessionSemaphore.release();
+                            return "Failed";
+                        }
+                    }else{
+                        //reservation is already done by another tutor
+                        reserveSessionSemaphore.release();
+                        return "Failed";
+                    }
+                }else{
+                    //Failed to get reserve session semaphore
+                    return "Failed";
+                }
+
+            }catch(InterruptedException e){
+                //Failed to get reserve session semaphore
+                return "Failed";
+            }
+
+        }else{
+            return "Invalid Parameters";
+        }
+
+    }
 
 }

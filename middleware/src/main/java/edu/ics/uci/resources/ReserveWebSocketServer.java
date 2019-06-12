@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import edu.ics.uci.core.ReserveSessionState;
 import edu.ics.uci.core.TutorBean;
 import edu.ics.uci.core.UserRequestBean;
 import edu.ics.uci.db.TutorDAO;
@@ -20,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
 // endpoint path see cs237Application.run
@@ -30,6 +32,9 @@ public class ReserveWebSocketServer {
     public static HashMap<String, Session> websocketSessionMap = new HashMap<>();
     public static BiMap<String, String> userWebSocketMap = HashBiMap.create();
 
+    public static volatile HashMap<String, ReserveSessionState> reserveSessionMap = new HashMap<>();
+
+    public static Semaphore reserveSessionSemaphore = new Semaphore(1);
 
     public static class ReserveWebSocketServerConfigurator extends ServerEndpointConfig.Configurator {
 
@@ -58,8 +63,10 @@ public class ReserveWebSocketServer {
         websocketSessionMap.put(session.getId(), session);
     }
 
+    /*
     @OnMessage
     public void myOnMsg(final Session session, String message) throws IOException, InterruptedException {
+
         ObjectNode request = OBJECT_MAPPER.readValue(message, ObjectNode.class);
         String skill = request.get("skill").asText();
 
@@ -98,48 +105,49 @@ public class ReserveWebSocketServer {
 
         session.getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(foundRes));
     }
+*/
 
-//    @OnMessage
-//    public void myOnMsg(final Session session, String message) throws IOException{
-//        try{
-//            UserRequestBean userRequest = OBJECT_MAPPER.readValue(message, UserRequestBean.class);
-//            String userEmail = userRequest.getUserEmail();
-//            userWebSocketMap.put(userEmail, session.getId());
-//
-//
-//
-//
-//            // TODO: Get current user's location
-//
-//
-//
-//
-//
-//            //TODO: Select all tutors from tutors database with the required skill
-//
-//
-//            //TODO: read the TIPPERS database for each tutor selected
-//
-//
-//            int iterations = 0;
-//            while (iterations < 3) {
-//
-//                //TODO: filter tutors by geolocation
-//
-//
-//                //TODO: POST to Push Server
-//
-//
-//                //TODO: Check if current request is complete
-//
-//
-//
-//                iterations++;
-//            }
-//        }catch(JsonProcessingException e){
-//            throw e;
-//        }
-//    }
+
+    @OnMessage
+    public void myOnMsg(final Session session, String message) throws IOException{
+        try{
+            UserRequestBean userRequest = OBJECT_MAPPER.readValue(message, UserRequestBean.class);
+            String userEmail = userRequest.getUserEmail();
+            userWebSocketMap.put(userEmail, session.getId());
+            reserveSessionMap.put(userEmail, new ReserveSessionState(userEmail, false, null));
+
+            // TODO: Get current user's location
+
+
+
+
+
+            //TODO: Select all tutors from tutors database with the required skill
+
+
+            //TODO: read the TIPPERS database for each tutor selected
+
+
+            int iterations = 0;
+            while (iterations < 3) {
+
+                //TODO: filter tutors by geolocation
+
+
+                //TODO: POST to Push Server
+
+
+                //TODO: Check if current request is complete
+
+
+
+                iterations++;
+            }
+        }catch(JsonProcessingException e){
+            throw e;
+        }
+    }
+
 
     @OnClose
     public void myOnClose(final Session session, CloseReason cr) {

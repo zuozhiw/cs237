@@ -31,4 +31,6 @@ public interface TutorDAO {
     @SqlUpdate("update tutor set skills = :skills, available = :available where email_id = :email_id;")
     void updateTutor(@Bind("email_id") String email_id, @Bind("skills") String skills, @Bind("available") Boolean available);
 
+    @SqlUpdate("update tutor set score = :score, available = :available where email_id = :email_id;")
+    void updateTutorAvailability(@Bind("email_id") String email_id, @Bind("score") Double score, @Bind("available") Boolean available);
 }
