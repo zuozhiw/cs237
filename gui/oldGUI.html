@@ -1,0 +1,139 @@
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+ 		<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.9.0.min.js"></script>
+    	<script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
+		<script src="page.js"></script>
+		<style>
+			select.multiselect option{
+				height: 40px;
+				padding: 10px;
+				font-weight: bold;
+			}
+			.availcheckbox{
+			    font-size: large;
+    			font-style: oblique;
+    			font-family: none;
+			}
+
+			.availcheckbox.checkbox-inline input[type=checkbox]{
+    				    height: 15px;
+    					width: 15px;
+    			}
+
+    			.parallax {
+					  /* Set a specific height */
+					  min-height: 510px; 
+
+					  /* Create the parallax scrolling effect */
+					  background-attachment: fixed;
+					  background-position: center;
+					  background-repeat: no-repeat;
+					  background-size: cover;
+				}
+		</style>
+	</head>
+    <body style="background-color: #d9edf7">
+        <div class="jumbotron text-center" style="margin-bottom: 0px">
+		    <h1>Tutoring@UCI. Be a Tutor. Find a Tutor.</h1>
+		    <p>All the help you need. Just a click away.</p> 
+		 </div>
+
+		<div id="login" data-bind="visible:userFound() == false" style="background-image: url('uci.jpg');background-size:'cover';height:650px;">
+			<div class="container text-center">
+					<form id="loginForm">
+					  <div class="form-group">
+					    <h2 for="email">Email address</h2>
+					    <input type="email" id="email" class="form-control" style="width:50%;margin-left: 25%" placeholder="Email" required data-bind="value:email">
+					  </div>
+					 <button type="submit" class="btn btn-default" data-bind="click: enterUser">Confirm identity</button>
+					 </form>
+			</div>
+
+
+		</div>
+        <div class="parallax" id="main" data-bind="visible:userFound() == true">
+        	<div class="container">
+        		<div class="text-center" data-bind="if:successMsg() != ''">
+        			<blockquote style="width:35%;margin-left:32%;margin-top: 20px"><p class="text-success" data-bind="text:successMsg"></p></blockquote>
+        		</div>
+        		<div  class="text-center" style="margin-bottom:30px;" data-bind="visible:!$data.available()">
+  					<button type="button" class="btn btn-success btn-lg" data-bind="visible:!editTutorMode() && $data.userFound() && !$data.visibility(), click: toggleEdit">Be a tutor!</button>
+  				</div>
+				<div class="text-center" style="margin-bottom:30px;" data-bind="visible:$data.editTutorMode()">	
+					<form id="EditTutorForm" style="width:50%;margin-left: 25%">
+						<h2>Be a tutor!</h2>
+						<div class="form-group">
+						<label>Add Skill: </label>
+						<select data-bind="value:skillToAdd,options:skillsDropdown" class="form-control">
+							 
+						</select>	
+						<button class="btn btn-primary" style="margin:20px" data-bind="click:addSkillToUpdate">Add</button>
+					</div>
+					<div class="form-group" data-bind="visible:$data.skillsToUpdate().length > 0">
+						<label>Your skills:</label>
+						<select class="multiselect" multiple="multiple" style="width: 100%;text-align: center;" height="5" data-bind="options:$data.skillsToUpdate, selectedOptions:selectedSkills"> </select>
+						<div>
+							<button class="btn btn-primary" style="margin:20px" data-bind="click: removeSelectedSkills, enable: selectedSkills().length > 0">Remove</button>
+						</div>
+						</div>
+						<div class="form-group">
+							<label class="checkbox-inline availcheckbox"><input type="checkBox" data-bind="checked:visibility">Are you immediately available ? *Note - you change this as and when you wish to.</label>
+						</div>
+						<div class="form-group">
+							<button class="btn btn-info btn-lg" style="margin:20px;width:50%" data-bind="click: addOrUpdateTutor, enable: skillsToUpdate().length > 0">Update</button>
+							<button class="btn btn-default btn-lg" style="margin:20px;width:50%" data-bind="click: enterUser">Cancel</button>
+						</div>
+					</form>
+				</div>
+  				<div class="text-center" data-bind="visible:$data.visibility() && !$data.editTutorMode()">
+  					<h2>You are available for tutoring !!</h2>
+  					<dl style="font-size: -webkit-xxx-large">
+  						<dt>You have registered below skills:</dt>
+  						<dd><ul style="list-style:none" data-bind="foreach: skills"><li data-bind="text:$data"></li></ul></dd>
+					</dl>
+  					<div class="row" style="margin: 20px;">
+  						<button style="font-size:20px" type="button" class="btn btn-info" data-bind="click: toggleEdit">Edit</button>
+  						<button type="button" style="font-size:20px" class="btn btn-warning" data-bind="click : removeTutor">Unregister</button>
+  					</div>
+  				</div>
+			</div>
+		</div>
+			<div class="row" data-bind="visible:userFound() == true" style="height:650px;">
+				<div class="text-center">
+					<div class="text-center">
+  					<h2>Find a Tutor !!</h2>
+  					<form id="findTutorForm" style="width:50%;margin-left: 25%">
+					  	<div class="form-group">
+					    	<label for="skillSelect">Select the area that you need help with:</label>
+					    	<select data-bind="value:searchSkill,options:skillsDropdown" class="form-control" style="width:50%;margin-left: 25%">
+							</select>					    	
+							<button type="button" style="margin-top:20px;margin-bottom:20px" class="btn btn-info" data-bind="click: findTutors">Find!</button>
+					  	</div>
+					 </form>
+					 <div class="row" data-bind="text:tutorMsg"></div>
+					 <div class="row" data-bind="if:$data.availableTutors().length > 0">
+					 	<table class="table table-bordered" style="list-style:none;font-size:20px;padding:10px;margin-left: 23%;width: 60%;" data-bind="foreach: $data.availableTutors()">					 	<tr data-bind="if:$index() == 0">
+					 				<td>Email</td>
+					 				<td>Area</td>
+					 				<td>Location</td>
+					 				<td>Timestamp</td>
+					 				<td>Action</td>
+					 			</tr>
+					 		
+					 		<tr>
+					 			<td data-bind="text:$data.email"></td>
+					 			<td data-bind="text:$data.area"></td>
+					 			<td data-bind="text:$data.location"></td>
+					 			<td data-bind="text:$data.timestamp"></td>
+					 			<td><button data-bind="click:$root.reserveTutor">Reserve</button></td>
+					 		</tr>
+					 	</table>
+					 </div>
+  				</div>
+  					
+  				</div>
+			</div>
+    </body>
+</html>

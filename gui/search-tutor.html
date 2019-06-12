@@ -1,0 +1,100 @@
+<html>
+
+<title>Tutoring at UCI</title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'/>
+
+<style type="text/css">
+#container {
+  width: 100%;
+  height: 100%;
+  }
+#search{
+width: 100%;
+top:10px;
+position:absolute;
+}
+#info {
+left:0px
+display: block;
+position: relative;
+margin: 0px auto;
+width: 50%;
+padding: 10px;
+border: none;
+border-radius: 3px;
+font-size: 12px;
+text-align: center;
+color: #222;
+background: #fff;
+}
+#marker {
+background-color: blue;
+background-size: cover;
+width: 5px;
+height: 5px;
+border-radius: 50%;
+cursor: pointer;
+}
+</style>
+
+<body style="line-height: 0;">
+<div id="map" style="width:100vw; height: 100vh"></div>
+<div id="search">
+    <div class="row"></div>
+    <div class="row">
+        <div class="col-sm-2"></div>
+        <select style="width: 40%"
+                class="form-control col-sm-4 ng-pristine ng-untouched ng-empty ng-invalid ng-invalid-required"
+                id="skill-selection">
+        </select>
+        <div class="col-sm-1"></div>
+        <span class="col-sm-1 input-group-btn">
+<button type="submit" onclick="findTutors()" class=" btn btn-primary" id="submit-button">Submit</button></span><span><a
+            href="sign-up.html">Become a tutor</a></span></div>
+</div>
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+<link href="https://getbootstrap.com/docs/4.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.50.0/mapbox-gl.js'></script>
+<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.50.0/mapbox-gl.css' rel='stylesheet'/>
+<script>
+var HOST = "http://localhost:8080/api/tutor/"
+mapboxgl.accessToken = 'pk.eyJ1IjoiamVyZW15bGkiLCJhIjoiY2lrZ2U4MWI4MDA4bHVjajc1am1weTM2aSJ9.JHiBmawEKGsn3jiRK_d0Gw';
+const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/light-v9',
+      center: [-117.842841, 33.64585],
+      zoom: 15
+    });
+
+function findTutors(){
+var skill = $('#skill-selection').children("option:selected").val();
+            $.getJSON(HOST + "find?skill=" + skill, function (data) {
+          var features = [];
+          $.each(data, function(index, value){
+
+var el = document.createElement('div');
+el.id = 'marker';
+var marker = new mapboxgl.Marker(el)
+.setLngLat(value.coordinates)
+.addTo(map);
+
+var popup = new mapboxgl.Popup({closeOnClick: false})
+.setLngLat([-117.841989, 33.643161])
+.setHTML('<p>Meet at location</p>')
+.addTo(map);
+});
+});
+};
+$(document).ready(function () {
+            $.getJSON(HOST + "listAllSkills", function (data) {
+                $.each(data, function (index, value) {
+                    $('#skill-selection').append('<option>' + value + '</option>');
+                });
+            });
+});
+
+</script>
+
+</html>

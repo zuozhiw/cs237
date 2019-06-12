@@ -13,7 +13,9 @@ public class TutorMapper implements RowMapper<TutorBean> {
     public TutorBean map(ResultSet rs, StatementContext ctx) throws SQLException {
         return new TutorBean(rs.getString("email_id"), rs.getString("skills"),
                 Optional.ofNullable(rs.getTimestamp("reserved"))
-                        .map(t -> t.toLocalDateTime()).orElse(null), rs.getBoolean("available"));
+                        .map(t -> t.toLocalDateTime()).orElse(null), rs.getBoolean("available"), rs.getDouble("score"), null);
     }
+
+
 
 }
