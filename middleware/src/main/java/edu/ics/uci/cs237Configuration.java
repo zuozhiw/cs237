@@ -9,6 +9,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.*;
 
 public class cs237Configuration extends Configuration {
+
     @Valid
     @NotNull
     private DataSourceFactory database = new DataSourceFactory();
