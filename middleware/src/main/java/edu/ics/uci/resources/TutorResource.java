@@ -20,7 +20,7 @@ import java.util.Random;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Path("/api/tutor")
+@Path("/tutor")
 @Produces(MediaType.APPLICATION_JSON)
 public class TutorResource {
 
