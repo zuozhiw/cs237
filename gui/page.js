@@ -1,10 +1,8 @@
-//html file first asks user to confirm identity if in tippers
-//if not in tippers ask user to
-//once confirmed check database to see if user is a tutor or student
-//if tutor retrieve his skills
-//if student, ask if he wants to become a tutor
-//for any user search
-
+//set a schedule to show my availability
+//when student wants a service, confirm if tutor is available before assigning to tutor
+//if no one is nearby then we can suggest to go to other building for
+//add API to get more skills
+//add a map and progress bar while searching
 
 var HOST = "http://localhost:8080/api/tutor/"
 

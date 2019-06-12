@@ -1,6 +1,7 @@
 package edu.ics.uci.core;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 public class TutorBean {
@@ -10,13 +11,26 @@ public class TutorBean {
     private LocalDateTime reserved;
     private Boolean available;
     private Double score;
+    private List<Double> coordinates;
 
-    public TutorBean(String email_id, String skills, LocalDateTime reserved, Boolean available, Double score) {
+    public TutorBean() {
+    }
+
+    public List<Double> getCoordinates() {
+        return coordinates;
+    }
+
+    public void setCoordinates(List<Double> coordinates) {
+        this.coordinates = coordinates;
+    }
+
+    public TutorBean(String email_id, String skills, LocalDateTime reserved, Boolean available, Double score, List<Double> coordinate) {
         this.email_id = email_id;
         this.skills = skills;
         this.reserved = reserved;
         this.available = available;
         this.score = score;
+        this.coordinates = coordinate;
     }
 
     public String getEmail_id() {
@@ -68,13 +82,8 @@ public class TutorBean {
                 Objects.equals(skills, tutorBean.skills) &&
                 Objects.equals(reserved, tutorBean.reserved) &&
                 Objects.equals(available, tutorBean.available) &&
-                Objects.equals(score, tutorBean.score);
-
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(email_id, skills, reserved, available, score);
+                Objects.equals(score, tutorBean.score) &&
+                Objects.equals(coordinates, tutorBean.coordinates);
     }
 
     @Override
@@ -85,6 +94,12 @@ public class TutorBean {
                 ", reserved=" + reserved +
                 ", available=" + available +
                 ", score=" + score +
+                ", coordinates=" + coordinates +
                 '}';
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email_id, skills, reserved, available, score, coordinates);
     }
 }
