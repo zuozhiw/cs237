@@ -49,8 +49,13 @@ cursor: pointer;
         </select>
         <div class="col-sm-1"></div>
         <span class="col-sm-1 input-group-btn">
-<button type="submit" onclick="findTutors()" class=" btn btn-primary" id="submit-button">Submit</button></span><span><a
+<button type="submit" onclick="findTutors()" class=" btn btn-primary" id="submit-button">Submit</button></span><span style="padding-top:22"><a
             href="sign-up.html">Become a tutor</a></span></div>
+    <div class="row"></div>
+    <div class="row">
+        <div class="col-sm-2"></div>
+        <div class="col-sm-4 alert alert-primary" role="alert" id="alertMsg" style="display:none;"></div>
+    </div>
 </div>
 </body>
 
@@ -83,7 +88,9 @@ function onReturnTutorList(data) {
 }
 
 function onUserNotification(notification) {
-  alert(notification["notification"]);
+  $('#alertMsg').html(notification["notification"]);
+  $('#alertMsg').show();
+  $('#alertMsg').delay(2000).fadeOut('slow');
 }
 
 function onTutorFound(data) {
