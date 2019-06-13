@@ -57,11 +57,10 @@ public class cs237Application extends Application<cs237Configuration> {
 
         websocketBundle.addEndpoint(ServerEndpointConfig.Builder
                 .create(ReserveWebSocketServer.class, "/api/reserve-ws")
-                .configurator(new ReserveWebSocketServerConfigurator(jdbi))
+                .configurator(new ReserveWebSocketServerConfigurator(jdbi, okHttpClient, configuration))
                 .build()
         );
 
-        ReserveWebSocketServer.okHttpClient = okHttpClient;
         BuildingLocations.init();
         // TODO: implement application
     }

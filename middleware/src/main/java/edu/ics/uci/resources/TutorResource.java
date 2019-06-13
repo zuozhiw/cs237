@@ -25,6 +25,9 @@ import static edu.ics.uci.resources.ReserveWebSocketServer.reserveSessionSemapho
 @Produces(MediaType.APPLICATION_JSON)
 public class TutorResource {
 
+    public static final String MOCK_TIPPERS = "http://localhost:7080";
+    public static final String PUSH_SERVER = "http://localhost:9080";
+
     public static final String SENSORAHOST = "http://sensoria.ics.uci.edu:8059";
     public static final String SENSORAUCIHOST = "http://sensoria.ics.uci.edu:9001";
 

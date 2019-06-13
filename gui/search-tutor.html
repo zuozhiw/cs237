@@ -130,7 +130,7 @@ socket.onclose = function(event) {
 
 function findTutors(){
   var skill = $('#skill-selection').children("option:selected").val();
-  socket.send(JSON.stringify({"skill" : skill}));
+  socket.send(JSON.stringify({"userEmail": sessionStorage.getItem("userEmail"), "skill" : skill}));
 };
 
 $(document).ready(function () {

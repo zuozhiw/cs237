@@ -20,14 +20,14 @@ public class MockTIPPERSResource {
 
     public MockTIPPERSResource(){
         counter = 0;
-        tippersStore.put("student1@uci.edu", new MockTippersPayload("ISG", 2060, 2, "DBH"));
-        tippersStore.put("student2@uci.edu", new MockTippersPayload("ISG", 2040, 2, "DBH"));
-        tippersStore.put("student3@uci.edu", new MockTippersPayload("ICS", 180, 1, "ICS"));
-        tippersStore.put("abc@ics.uci.edu", new MockTippersPayload( "Conference", 6011, 6, "DBH"));
-        tippersStore.put("def@ics.uci.edu", new MockTippersPayload("Student Affairs", 352, 3, "ICS"));
-        tippersStore.put("ghi@ics.uci.edu", new MockTippersPayload("Lecture Hall", 1200, 1, "PCB"));
-        tippersStore.put("jkl@uci.edu", new MockTippersPayload("SH", 128, 1, "SH"));
-        tippersStore.put("mno@uci.edu", new MockTippersPayload("ARC", 100, 1, "ARC"));
+        tippersStore.put("zuozhiw@uci.edu", new MockTippersPayload("ISG", 2060, 2, "DBH"));
+        tippersStore.put("salsudai@uci.edu", new MockTippersPayload("ICS", 180, 1, "ICS"));
+        tippersStore.put("baiqiushi@gmail.com", new MockTippersPayload( "Conference", 6011, 6, "DBH"));
+        tippersStore.put("avinask1@uci.edu", new MockTippersPayload("Lecture Hall", 1200, 1, "PCB"));
+        tippersStore.put("sadeem.alsudais@gmail.com", new MockTippersPayload("SH", 128, 1, "SH"));
+        tippersStore.put("yiheng@uci.edu", new MockTippersPayload("Student Affairs", 352, 3, "ICS"));
+
+//        tippersStore.put("mno@uci.edu", new MockTippersPayload("ARC", 100, 1, "ARC"));
     }
 
     @GET

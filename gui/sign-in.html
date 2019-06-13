@@ -17,7 +17,7 @@
 </head>
 
 <body class="text-center">
-<form class="form-signin">
+<form id="login_form" class="form-signin" action="#">
     <h1 class="h3 mb-3 font-weight-normal">Please sign in with your TIPPERS account</h1>
     <label for="inputEmail" class="sr-only">Email address</label>
     <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
@@ -28,25 +28,37 @@
             <input type="checkbox" value="remember-me"> Remember me
         </label>
     </div>
-    <button class="btn btn-lg btn-primary btn-block" onclick="getUser()">Sign in</button>
+    <input type="submit" class="btn btn-lg btn-primary btn-block">Sign in</input>
     <hr>
     <p>Don’t have an account? <a href="sign-up.html">Sign up</a></p>
     <p class="mt-5 mb-3 text-muted">Middleware Systems Project &copy; 2019</p>
 </form>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+<link href="https://getbootstrap.com/docs/4.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
 <script type="text/javascript">
 var HOST = "http://localhost:8080/api/tutor/"
-    function getUser() {
+
+function submitLoginForm(formSubmitEvent) {
+
+    formSubmitEvent.preventDefault();
+
     var email = document.getElementById("inputEmail")
-        var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4) {
-                window.location.href = "http://localhost:8080/search-tutor.html";
-            }
+    var requestUrl = HOST + "getTutor?email_id=" + email.value;
+    jQuery.get(requestUrl).done(res => {
+        // student
+        if (! res) {
+            sessionStorage.setItem("userEmail", email.value);
+            window.location.href = "search-tutor.html";
+        } else {
+            sessionStorage.setItem("tutorEmail", email.value);
+            window.location.href = "tutor-home.html";
         }
-        xhr.open('get', HOST + "getTutor?email_id=" + email, true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-        xhr.send();
-    }
+        console.log(res);
+    })
+}
+jQuery("#login_form").submit((event) => submitLoginForm(event));
 
 </script>
 </body>

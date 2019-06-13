@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import edu.ics.uci.core.MiddlewareRequest;
 import edu.ics.uci.core.TutorNotification;
 import edu.ics.uci.core.TutorSubscribeRequest;
 
@@ -24,24 +25,20 @@ public class PushServer {
     public static BiMap<String, String> userWebSocketMap = HashBiMap.create();
 
 
-    public static void sendPushNotifications(String origin, String userEmail, List<String> tutorEmails){
-        for(int i=0; i<tutorEmails.size(); i++){
-            String email = tutorEmails.get(i);
-            if (userWebSocketMap.containsKey(email)){
-                String sessionId = userWebSocketMap.get(email);
-                try{
-                    websocketSessionMap.get(sessionId).getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(new TutorNotification(origin, userEmail)));
-                }catch(JsonProcessingException e){
-
-                }
-
+    public static void sendPushNotifications(MiddlewareRequest middlewareRequest) throws Exception {
+        for (String tutorEmail : middlewareRequest.getTutorEmails()) {
+            if (userWebSocketMap.containsKey(tutorEmail)) {
+                TutorNotification tutorNotification = new TutorNotification(
+                        middlewareRequest.getOrigin(), middlewareRequest.getUserEmail(), middlewareRequest.getUserCoordinates()
+                );
+                String sessionId = userWebSocketMap.get(tutorEmail);
+                websocketSessionMap.get(sessionId).getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(tutorNotification));
             }
         }
     }
 
     @OnOpen
     public void myOnOpen(final Session session) throws IOException {
-        session.getAsyncRemote().sendText("welcome");
         websocketSessionMap.put(session.getId(),session);
     }
 

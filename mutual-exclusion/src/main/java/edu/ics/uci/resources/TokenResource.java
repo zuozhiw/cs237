@@ -43,8 +43,8 @@ public class TokenResource {
     }
 
     @GET
-    @Path("/createToken")
-    public String createToken(@QueryParam("token_id") Optional<String> token_id){
+    @Path("/create-token")
+    public String createToken(@QueryParam("id") Optional<String> token_id){
         this.myToken = new RA2Token(Integer.parseInt(token_id.get()));
         return "Token Created!";
     }
@@ -109,7 +109,7 @@ public class TokenResource {
     }
 
     @GET
-    @Path("/requestToken")
+    @Path("/request-token")
     public RA2Token tokenRequested(){
         try{
             boolean success = this.TokenSemaphore.tryAcquire(1, TimeUnit.MILLISECONDS);

@@ -16,7 +16,7 @@ public class cs237Application extends Application<cs237Configuration> {
 
     @Override
     public String getName() {
-        return "cs237";
+        return "cs237-mutual-exclusion";
     }
 
     @Override

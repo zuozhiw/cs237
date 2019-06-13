@@ -39,19 +39,6 @@ cursor: pointer;
 
 <body style="line-height: 0;">
 <div id="map" style="width:100vw; height: 100vh"></div>
-<div id="search">
-    <div class="row"></div>
-    <div class="row">
-        <div class="col-sm-2"></div>
-        <select style="width: 40%"
-                class="form-control col-sm-4 ng-pristine ng-untouched ng-empty ng-invalid ng-invalid-required"
-                id="skill-selection">
-        </select>
-        <div class="col-sm-1"></div>
-        <span class="col-sm-1 input-group-btn">
-<button type="submit" onclick="findTutors()" class=" btn btn-primary" id="submit-button">Submit</button></span><span><a
-            href="sign-up.html">Become a tutor</a></span></div>
-</div>
 </body>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
@@ -60,9 +47,8 @@ cursor: pointer;
 <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.50.0/mapbox-gl.css' rel='stylesheet'/>
 <script>
 
-let socket = new WebSocket("ws://localhost:8080/api/reserve-ws");
+let socket = new WebSocket("ws://localhost:9080/api/push");
 
-var HOST = "http://localhost:9080/api/tutor/"
 mapboxgl.accessToken = 'pk.eyJ1IjoiamVyZW15bGkiLCJhIjoiY2lrZ2U4MWI4MDA4bHVjajc1am1weTM2aSJ9.JHiBmawEKGsn3jiRK_d0Gw';
 const map = new mapboxgl.Map({
       container: 'map',
@@ -72,27 +58,11 @@ const map = new mapboxgl.Map({
     });
 
 
-function onReturnTutorList(data) {
-  $.each(data, function(index, value){
-    var el = document.createElement('div');
-    el.id = 'marker';
-    var marker = new mapboxgl.Marker(el)
-    .setLngLat(value.coordinates)
-    .addTo(map);
-  });
-}
 
-function onUserNotification(notification) {
-  alert(notification["notification"]);
+function onRequestTutor(data) {
+  console.log(data);
 }
-
-function onTutorFound(data) {
-    var popup = new mapboxgl.Popup({closeOnClick: false})
-      .setLngLat(data.coordinates)
-      .setHTML(`<p>Meet ${data.found} here :)</p>`)
-      .addTo(map);
-}
-
+  
 socket.onopen = function(e) {
   console.log("ws established");
 };
@@ -102,18 +72,7 @@ socket.onmessage = function(event) {
 
   var dataStr = event.data;
   
-  if (dataStr.includes("found")) {
-    // found response
-    onTutorFound(JSON.parse(dataStr));
-  }
-  else if (dataStr.includes("notification")) {
-    var notification = JSON.parse(dataStr);
-    onUserNotification(notification);
-  }
-  else {
-    var allTutors = JSON.parse(dataStr);
-    onReturnTutorList(allTutors);
-  }
+  onRequestTutor(JSON.parse(dataStr));
 
 };
 
@@ -121,18 +80,8 @@ socket.onclose = function(event) {
   console.log("ws closed");
 };
 
-function findTutors(){
-  var skill = $('#skill-selection').children("option:selected").val();
-  socket.send(JSON.stringify({"skill" : skill}));
-};
 
-$(document).ready(function () {
-            $.getJSON(HOST + "listAllSkills", function (data) {
-                $.each(data, function (index, value) {
-                    $('#skill-selection').append('<option>' + value + '</option>');
-                });
-            });
-});
+
 
 </script>
 

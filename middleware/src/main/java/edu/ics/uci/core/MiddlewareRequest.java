@@ -6,47 +6,49 @@ import java.util.List;
 public class MiddlewareRequest {
     private String origin;
     private String userEmail;
-    private ArrayList<String> tutorEmails;
+    private List<Double> userCoordinates;
+    private List<String> tutorEmails;
 
     public MiddlewareRequest(){
 
     }
 
-    public MiddlewareRequest(String origin, String userEmail, List<String> tutorEmails){
+    public MiddlewareRequest(String origin, String userEmail, List<Double> userCoordinates, List<String> tutorEmails) {
         this.origin = origin;
         this.userEmail = userEmail;
-        this.tutorEmails = new ArrayList<>();
-        for (int i=0; i<tutorEmails.size();i++){
-            this.tutorEmails.add(tutorEmails.get(i));
-        }
+        this.userCoordinates = userCoordinates;
+        this.tutorEmails = tutorEmails;
     }
 
-    public String getOrigin(){
+    public String getOrigin() {
         return origin;
     }
 
-    public void setOrigin(String origin){
+    public void setOrigin(String origin) {
         this.origin = origin;
     }
 
-    public String getUserEmail(){
+    public String getUserEmail() {
         return userEmail;
     }
 
-    public void setUserEmail(String userEmail){
+    public void setUserEmail(String userEmail) {
         this.userEmail = userEmail;
     }
 
-    public ArrayList<String> getTutorEmails(){
+    public List<Double> getUserCoordinates() {
+        return userCoordinates;
+    }
+
+    public void setUserCoordinates(List<Double> userCoordinates) {
+        this.userCoordinates = userCoordinates;
+    }
+
+    public List<String> getTutorEmails() {
         return tutorEmails;
     }
 
-    public void setTutorEmails(ArrayList<String> tutorEmails){
-        this.tutorEmails = new ArrayList<>();
-        for (int i=0; i<tutorEmails.size();i++){
-            this.tutorEmails.add(tutorEmails.get(i));
-        }
+    public void setTutorEmails(List<String> tutorEmails) {
+        this.tutorEmails = tutorEmails;
     }
-
-
 }
