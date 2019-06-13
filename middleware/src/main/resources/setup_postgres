@@ -29,8 +29,8 @@ PRIMARY KEY (email_id));
 
 insert into tutor values ('salsudai@uci.edu', 'Database', null, true, 0);
 insert into tutor values ('sadeem.alsudais@gmail.com', 'AI,Database', null, true, 0);
-insert into tutor values ('zuozhiw@uci.edu', 'Database', current_timestamp, false, 0);
-insert into tutor values ('avinask1@uci.edu', 'Database,English Speaking', current_timestamp, false, 0);
+insert into tutor values ('zuozhiw@uci.edu', 'Database,NLP', null, true, 0);
+insert into tutor values ('avinask1@uci.edu', 'Database,English Speaking', null, true, 0);
 insert into tutor values ('baiqiushi@gmail.com', 'NLP,Database', current_timestamp, true, 0);
 create user tutor with password 'tutor' createdb;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO tutor;

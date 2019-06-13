@@ -2,6 +2,9 @@ package edu.ics.uci.resources;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import edu.ics.uci.core.BuildingLocations;
 import edu.ics.uci.core.ReserveSessionState;
 import edu.ics.uci.core.TippersResponse;
 import edu.ics.uci.core.TutorBean;
@@ -20,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static edu.ics.uci.resources.ReserveWebSocketServer.reserveSessionSemaphore;
+import static edu.ics.uci.resources.ReserveWebSocketServer.tippersResponseMap;
 
 @Path("/tutor")
 @Produces(MediaType.APPLICATION_JSON)
@@ -37,11 +41,12 @@ public class TutorResource {
     private OkHttpClient okHttpClient;
 
     public static List<String> randomPoints = Arrays.asList("-117.841989,33.643161",
-            "-117.841968,33.643054","-117.841721,33.643242", "-117.843356,33.643414",
+            "-117.841968,33.643054", "-117.841721,33.643242", "-117.843356,33.643414",
             "-117.843524,33.643407", "-117.843588,33.64342", "-117.828206,33.643422",
             "-117.827527,33.643288", "-117.827672,33.643708", "-117.841897,33.644132",
             "-117.84173,33.644244", "-117.841532,33.644275", "-117.841773,33.644481",
             "-117.84465,33.646292", "-117.844961,33.646131", "-117.844725,33.646131");
+
     public TutorResource(Jdbi jdbi, OkHttpClient okHttpClient) {
         this.jdbi = jdbi;
         this.okHttpClient = okHttpClient;
@@ -77,7 +82,7 @@ public class TutorResource {
         if (skill.isPresent()) {
             List<TutorBean> tutors = tutorDAO.findAvailableTutorsWithSkill(skill.get());
             Random rand = new Random();
-            for(int i = 0; i < tutors.size(); i++){
+            for (int i = 0; i < tutors.size(); i++) {
                 int index = rand.nextInt(randomPoints.size());
                 String point = randomPoints.get(index);
                 List<Double> coordinates = Arrays.stream(point.split(",")).map(s -> Double.parseDouble(s)).collect(Collectors.toList());
@@ -102,6 +107,7 @@ public class TutorResource {
         TutorDAO tutorDAO = jdbi.onDemand(TutorDAO.class);
         tutorDAO.insertTutor(email_id.get(), skills.get(), available.get());
     }
+
     @POST
     @Path("/updateTutor")
     public void updateTutor(@FormParam("email_id") Optional<String> email_id, @FormParam("skills") Optional<String> skills, @FormParam("available") Optional<Boolean> available) {
@@ -135,7 +141,7 @@ public class TutorResource {
     @Path("/tippers")
     public String getTippersResponse(@QueryParam("subject_id") Optional<String> subject_id) throws Exception {
         try {
-            if (! subject_id.isPresent()) {
+            if (!subject_id.isPresent()) {
                 throw new RuntimeException("subject id cannot be empty");
             }
             Request request = new Request.Builder()
@@ -160,16 +166,16 @@ public class TutorResource {
 
     @GET
     @Path("/terminate")
-    public String terminateTutorReservation(@QueryParam("userEmail") Optional<String> userEmail){
-        if (userEmail.isPresent()&&ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).getSelectedTutorEmail()!=null){
+    public String terminateTutorReservation(@QueryParam("userEmail") Optional<String> userEmail) {
+        if (userEmail.isPresent() && ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).getSelectedTutorEmail() != null) {
             Request request = new Request.Builder()
-                    .url(MUTUAL_EXCLUSION_MODULE_HOST+"/api/token/acquire")
+                    .url(MUTUAL_EXCLUSION_MODULE_HOST + "/api/token/acquire")
                     .build();
             try {
                 Response response = okHttpClient.newCall(request).execute();
                 String responseString = response.body().string();
                 System.out.println(responseString);
-                if (responseString.equals("Lock acquired")){
+                if (responseString.equals("Lock acquired")) {
                     TutorDAO tutorDAO = jdbi.onDemand(TutorDAO.class);
                     TutorBean tutorBean = tutorDAO.findTutor(ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).getSelectedTutorEmail());
 
@@ -177,26 +183,26 @@ public class TutorResource {
                     tutorDAO.updateTutorAvailability(ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).getSelectedTutorEmail(),
                             nextTutorScore, true, tutorBean.getReserved());
                     Request request2 = new Request.Builder()
-                            .url(MUTUAL_EXCLUSION_MODULE_HOST+"/api/token/release")
+                            .url(MUTUAL_EXCLUSION_MODULE_HOST + "/api/token/release")
                             .build();
-                    try{
-                        Response response2 =okHttpClient.newCall(request2).execute();
+                    try {
+                        Response response2 = okHttpClient.newCall(request2).execute();
                         System.out.println(response2.body().string());
-                    }catch(IOException e){
+                    } catch (IOException e) {
 
                     }
                     ReserveWebSocketServer.reserveSessionMap.remove(userEmail.get());
                     //TEST ONLY
                     ReserveWebSocketServer.websocketSessionMap.get(ReserveWebSocketServer.userWebSocketMap.get(userEmail.get())).getAsyncRemote().sendText("Session Terminated");
                     return "Success";
-                }else{
+                } else {
                     return "Failed";
                 }
-            }catch(IOException e){
+            } catch (IOException e) {
                 //Failed to acquire lock on tutorsDB
                 return "Failed";
             }
-        }else{
+        } else {
             return "Invalid Parameters";
         }
     }
@@ -204,96 +210,101 @@ public class TutorResource {
     @GET
     @Path("/accept")
     public String acceptTutorReservation(@QueryParam("tutorEmail") Optional<String> tutorEmail,
-                                         @QueryParam("userEmail") Optional<String> userEmail){
-        if(tutorEmail.isPresent()&&userEmail.isPresent()&&ReserveWebSocketServer.reserveSessionMap.containsKey(userEmail.get())){
-            try {
-                boolean success = reserveSessionSemaphore.tryAcquire(1000, TimeUnit.MILLISECONDS);
-                if (success){
-                    ReserveSessionState reserveSessionState = ReserveWebSocketServer.reserveSessionMap.get(userEmail.get());
-                    if (!reserveSessionState.isCompleted()){
-                        Request request = new Request.Builder()
-                                .url(MUTUAL_EXCLUSION_MODULE_HOST+"/api/token/acquire")
-                                .build();
-                        try{
-                            Response response = okHttpClient.newCall(request).execute();
-                            String responseString = response.body().string();
-                            System.out.println(responseString);
-                            if (responseString.equals("Lock acquired")){
-                                TutorDAO tutorDAO = jdbi.onDemand(TutorDAO.class);
+                                         @QueryParam("userEmail") Optional<String> userEmail) throws Exception {
 
-                                TutorBean tutorBean = tutorDAO.findTutor(tutorEmail.get());
-                                if (tutorBean.getAvailable()){
-                                    //TODO: Obtain previous tutor score, calculate next tutor score
-                                    double nextTutorScore = tutorBean.getCurrentScore();
-                                    /*
-                                    if (tutorBean.getReserved()==null){
-                                        nextTutorScore = 20.0;
-                                    }else{
-                                        LocalDateTime currentLocalDateTime = LocalDateTime.now();
-                                        LocalDateTime tempDateTime = LocalDateTime.from(tutorBean.getReserved());
-                                        long hours = tempDateTime.until(currentLocalDateTime, ChronoUnit.HOURS);
-                                        nextTutorScore = tutorBean.getScore()-(hours*10.0)+20.0;
-                                        if (nextTutorScore < 20.0) nextTutorScore = 20.0;
-                                    }*/
+        if (!tutorEmail.isPresent() || !userEmail.isPresent() || !ReserveWebSocketServer.reserveSessionMap.containsKey(userEmail.get())) {
+            throw new Exception("wrong parameters");
+        }
 
-                                    tutorDAO.updateTutorAvailability(tutorEmail.get(), nextTutorScore, false, LocalDateTime.now());
-                                }else{
+        boolean success = reserveSessionSemaphore.tryAcquire(1000, TimeUnit.MILLISECONDS);
+        if (!success) {
+            throw new Exception("cannot acquire lock");
+        }
 
-                                }
-
-                                Request request2 = new Request.Builder()
-                                        .url(MUTUAL_EXCLUSION_MODULE_HOST+"/api/token/release")
-                                        .build();
-                                try{
-                                    Response response2 =okHttpClient.newCall(request2).execute();
-                                    System.out.println(response2.body().string());
-                                }catch(IOException e){
-
-                                }
-
-                                if (tutorBean.getAvailable()){
-                                    ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).setCompleted();
-                                    ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).setSelectedTutorEmail(tutorEmail.get());
-                                    //TEST ONLY
-                                    ReserveWebSocketServer.websocketSessionMap.get(ReserveWebSocketServer.userWebSocketMap.get(userEmail.get())).getAsyncRemote().sendText(tutorEmail.get());
-                                    reserveSessionSemaphore.release();
-                                    return "Success";
-                                }else{
-                                    reserveSessionSemaphore.release();
-                                    return "Failed";
-                                }
+        ReserveSessionState reserveSessionState = ReserveWebSocketServer.reserveSessionMap.get(userEmail.get());
+        if (reserveSessionState.isCompleted()) {
+            //reservation is already done by another tutor
+            reserveSessionSemaphore.release();
+            return "Another tutor has been assigned to the user";
+        }
 
 
-                            }else{
-                                //Failed to acquire lock on tutorsDB
-                                reserveSessionSemaphore.release();
-                                return "Failed";
-                            }
-
-                        }catch(IOException e){
-                            //Failed to acquire lock on tutorsDB
-                            reserveSessionSemaphore.release();
-                            return "Failed";
-                        }
-                    }else{
-                        //reservation is already done by another tutor
-                        reserveSessionSemaphore.release();
-                        return "Failed";
-                    }
-                }else{
-                    //Failed to get reserve session semaphore
-                    return "Failed";
-                }
-
-            }catch(InterruptedException e){
-                //Failed to get reserve session semaphore
+        Request request = new Request.Builder()
+                .url(MUTUAL_EXCLUSION_MODULE_HOST + "/api/token/acquire")
+                .build();
+        try {
+            Response response = okHttpClient.newCall(request).execute();
+            String responseString = response.body().string();
+            System.out.println(responseString);
+            if (!responseString.equals("Lock acquired")) {
+                //Failed to acquire lock on tutorsDB
+                reserveSessionSemaphore.release();
                 return "Failed";
             }
 
-        }else{
-            return "Invalid Parameters";
-        }
+            TutorDAO tutorDAO = jdbi.onDemand(TutorDAO.class);
 
+            TutorBean tutorBean = tutorDAO.findTutor(tutorEmail.get());
+            List<Double> coordinates = BuildingLocations.getBuildingLocation(
+                    tippersResponseMap.get(tutorEmail.get()).getPayload().getBuilding()
+            );
+            tutorBean.setCoordinates(coordinates);
+
+            if (tutorBean.getAvailable()) {
+                //TODO: Obtain previous tutor score, calculate next tutor score
+                double nextTutorScore = tutorBean.getCurrentScore();
+                /*
+                if (tutorBean.getReserved()==null){
+                    nextTutorScore = 20.0;
+                }else{
+                    LocalDateTime currentLocalDateTime = LocalDateTime.now();
+                    LocalDateTime tempDateTime = LocalDateTime.from(tutorBean.getReserved());
+                    long hours = tempDateTime.until(currentLocalDateTime, ChronoUnit.HOURS);
+                    nextTutorScore = tutorBean.getScore()-(hours*10.0)+20.0;
+                    if (nextTutorScore < 20.0) nextTutorScore = 20.0;
+                }*/
+
+                tutorDAO.updateTutorAvailability(tutorEmail.get(), nextTutorScore, false, LocalDateTime.now());
+            } else {
+
+            }
+
+            Request request2 = new Request.Builder()
+                    .url(MUTUAL_EXCLUSION_MODULE_HOST + "/api/token/release")
+                    .build();
+
+            Response response2 = okHttpClient.newCall(request2).execute();
+            System.out.println(response2.body().string());
+
+
+            if (tutorBean.getAvailable()) {
+                ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).setCompleted();
+                ReserveWebSocketServer.reserveSessionMap.get(userEmail.get()).setSelectedTutorEmail(tutorEmail.get());
+                //TEST ONLY
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                ObjectNode foundRes = objectMapper.createObjectNode();
+                foundRes.put("found", tutorBean.getEmail_id());
+                ArrayNode arrayNode = objectMapper.createArrayNode();
+                tutorBean.getCoordinates().forEach(p -> arrayNode.add(p));
+                foundRes.set("coordinates", arrayNode);
+
+                ReserveWebSocketServer.websocketSessionMap.get(ReserveWebSocketServer.userWebSocketMap.get(userEmail.get()))
+                        .getAsyncRemote().sendText(objectMapper.writeValueAsString(foundRes));
+
+                reserveSessionSemaphore.release();
+                return "Success";
+            } else {
+                reserveSessionSemaphore.release();
+                return "Failed";
+            }
+
+
+        } catch (IOException e) {
+            //Failed to acquire lock on tutorsDB
+            reserveSessionSemaphore.release();
+            return "Failed";
+        }
     }
 
 }

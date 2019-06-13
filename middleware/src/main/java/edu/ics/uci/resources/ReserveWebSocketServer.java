@@ -108,7 +108,7 @@ public class ReserveWebSocketServer {
 
         Thread.sleep(3000);
         ObjectNode increaseTextRes = OBJECT_MAPPER.createObjectNode();
-        increaseTextRes.put("notification", "search range increased!");
+        increaseTextRes.put("notification", "expanding search range...");
         session.getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(increaseTextRes));
 
         List<TutorBean> increased = tutorsAll.subList(2, tutorsAll.size());
@@ -135,15 +135,19 @@ public class ReserveWebSocketServer {
             userWebSocketMap.put(userEmail, session.getId());
             reserveSessionMap.put(userEmail, new ReserveSessionState(userEmail, false, null));
 
-            // TODO: Get current user's location
+            ObjectNode notification = OBJECT_MAPPER.createObjectNode();
+            notification.put("notification", "starting search...");
+            session.getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(notification));
+
+            // Get current user's location
             TippersResponse tippersResponse = getTippersResponse(userEmail);;
 
             String userBuilding = tippersResponse.getPayload().getBuilding();
             List<Double> userCoordinates = BuildingLocations.getBuildingLocation(userBuilding);
-            //TODO: Select all tutors from tutors database with the required skill
+            // Select all tutors from tutors database with the required skill
             TutorDAO tutorDAO = jdbi.onDemand(TutorDAO.class);
             List<TutorBean> tutorBeans = tutorDAO.findAvailableTutorsWithSkill(userRequest.getSkill());
-            //TODO: read the TIPPERS database for each tutor selected
+            // read the TIPPERS database for each tutor selected
             for (int i=0; i<tutorBeans.size(); i++){
                 String tutorEmail = tutorBeans.get(i).getEmail_id();
                 TippersResponse tempTippersResponse = getTippersResponse(tutorEmail);
@@ -165,7 +169,7 @@ public class ReserveWebSocketServer {
 
 
                 List<TutorBean> qualifiedTutors = new ArrayList<>();
-                //TODO: filter tutors by geolocation and score
+                // filter tutors by geolocation and score
                 for (int i=0; i<tutorBeans.size(); i++){
                     TutorBean temp = tutorBeans.get(i);
                     if (temp.getCurrentScore()<=50.0){
@@ -181,24 +185,38 @@ public class ReserveWebSocketServer {
                     }
                 }
 
-                //TODO: Send List of Tutors to User
+                // Send List of Tutors to User
                 session.getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(qualifiedTutors));
 
-                //TODO: POST to Push Server
+                // POST to Push Server
                 notifyPushServer(new MiddlewareRequest(
                         getSelfUrl(), userEmail, userCoordinates,
                         qualifiedTutors.stream().map(t -> t.getEmail_id()).collect(Collectors.toList())
                 ));
 
-                //TODO: Timeout
-                Thread.sleep(10000);
+                // Timeout
+                Thread.sleep(5000);
 
-                //TODO: Check if current request is complete
+                // Check if current request is complete
+                if (reserveSessionMap.get(userEmail).isCompleted()) {
+                    return;
+                }
 
-
-                //TODO: If complete, break. Otherwise continue
+                // If complete, break. Otherwise continue
                 iterations++;
+
+                notification = OBJECT_MAPPER.createObjectNode();
+                notification.put("notification", "expanding search range...");
+                session.getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(notification));
             }
+
+            Thread.sleep(10000);
+            notification = OBJECT_MAPPER.createObjectNode();
+            notification.put("notification", "fail to find a tutor :(");
+            session.getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(notification));
+
+            reserveSessionMap.remove(userEmail);
+
         }catch(JsonProcessingException e){
             throw e;
         }catch(InterruptedException e){
