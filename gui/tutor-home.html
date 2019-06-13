@@ -60,18 +60,29 @@ const map = new mapboxgl.Map({
 
 
 function onRequestTutor(data) {
-  console.log(data);
+  var el = document.createElement('div');
+  el.id = 'marker';
+
+  var popup = new mapboxgl.Popup({closeOnClick: false})
+     .setHTML("<button class='x`btn btn-primary btn-sm'>Accept ${data.userEmail} \'s request</button>");
+
+  var marker = new mapboxgl.Marker(el)
+  .setLngLat(data.userCoordinates)
+  .setPopup(popup).addTo(map);
+
+
 }
-  
+
 socket.onopen = function(e) {
   console.log("ws established");
+  socket.send(JSON.stringify({"tutorEmail": sessionStorage.getItem("tutorEmail")}));
 };
 
 socket.onmessage = function(event) {
   console.log(event.data);
 
   var dataStr = event.data;
-  
+
   onRequestTutor(JSON.parse(dataStr));
 
 };

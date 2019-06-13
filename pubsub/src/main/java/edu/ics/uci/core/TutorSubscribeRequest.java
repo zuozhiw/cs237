@@ -1,15 +1,15 @@
 package edu.ics.uci.core;
 
 public class TutorSubscribeRequest {
-    public String email;
+    public String tutorEmail;
 
     public TutorSubscribeRequest() {
     }
 
-    public TutorSubscribeRequest(String email){
-        this.email = email;
+    public TutorSubscribeRequest(String tutorEmail){
+        this.tutorEmail = tutorEmail;
     }
-    public String getEmail(){
-        return this.email;
+    public String getTutorEmail(){
+        return this.tutorEmail;
     }
 }

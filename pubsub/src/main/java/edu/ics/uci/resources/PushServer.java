@@ -44,10 +44,10 @@ public class PushServer {
 
     @OnMessage
     public void onMsg(final Session session, String message) throws IOException{
-        if (message.contains("email")){
+        if (message.contains("tutorEmail")){
             try{
                 TutorSubscribeRequest request = OBJECT_MAPPER.readValue(message, TutorSubscribeRequest.class);
-                String useremail = request.getEmail();
+                String useremail = request.getTutorEmail();
                 userWebSocketMap.put(useremail, session.getId());
             }catch(JsonProcessingException e){
                 throw e;

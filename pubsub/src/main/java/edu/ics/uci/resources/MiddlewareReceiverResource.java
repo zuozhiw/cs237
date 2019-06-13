@@ -7,6 +7,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.Arrays;
 
+import static edu.ics.uci.resources.PushServer.userWebSocketMap;
+
 @Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
 public class MiddlewareReceiverResource {
@@ -24,6 +26,7 @@ public class MiddlewareReceiverResource {
 
         if (middlewareRequest!=null){
             if (middlewareRequest.getTutorEmails()!=null){
+                System.out.println(userWebSocketMap);
                 PushServer.sendPushNotifications(middlewareRequest);
                 return "Broadcast attempted";
             }
