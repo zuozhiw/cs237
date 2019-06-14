@@ -170,20 +170,27 @@ public class ReserveWebSocketServer {
 
                 List<TutorBean> qualifiedTutors = new ArrayList<>();
                 // filter tutors by geolocation and score
-                for (int i=0; i<tutorBeans.size(); i++){
-                    TutorBean temp = tutorBeans.get(i);
-                    if (temp.getCurrentScore()<=50.0){
-                        List<Double> coordinates = temp.getCoordinates();
-                        double distanceInKilometer = DistanceCalculator.distance(coordinates.get(1),
-                                coordinates.get(0),
-                                userCoordinates.get(1),
-                                userCoordinates.get(0),
-                                "K");
-                        if(distanceInKilometer < minimumDistance){
-                            qualifiedTutors.add(temp);
+                if (iterations != 2){
+                    for (int i=0; i<tutorBeans.size(); i++){
+                        TutorBean temp = tutorBeans.get(i);
+                        if (temp.getCurrentScore()<=50.0){
+                            List<Double> coordinates = temp.getCoordinates();
+                            double distanceInKilometer = DistanceCalculator.distance(coordinates.get(1),
+                                    coordinates.get(0),
+                                    userCoordinates.get(1),
+                                    userCoordinates.get(0),
+                                    "K");
+                            if(distanceInKilometer < minimumDistance){
+                                qualifiedTutors.add(temp);
+                            }
                         }
                     }
+                }else{
+                    for (int i=0; i<tutorBeans.size(); i++){
+                        qualifiedTutors.add(tutorBeans.get(i));
+                    }
                 }
+
 
                 // Send List of Tutors to User
                 session.getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(qualifiedTutors));
@@ -203,14 +210,19 @@ public class ReserveWebSocketServer {
                 }
 
                 // If complete, break. Otherwise continue
+
+                if (iterations!=2){
+                    notification = OBJECT_MAPPER.createObjectNode();
+                    notification.put("notification", "expanding search range...");
+                    session.getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(notification));
+                }
+
                 iterations++;
 
-                notification = OBJECT_MAPPER.createObjectNode();
-                notification.put("notification", "expanding search range...");
-                session.getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(notification));
+                qualifiedTutors.clear();
             }
 
-            Thread.sleep(10000);
+            //Thread.sleep(10000);
             notification = OBJECT_MAPPER.createObjectNode();
             notification.put("notification", "fail to find a tutor :(");
             session.getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(notification));

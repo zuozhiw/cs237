@@ -193,7 +193,11 @@ public class TutorResource {
                     }
                     ReserveWebSocketServer.reserveSessionMap.remove(userEmail.get());
                     //TEST ONLY
-                    ReserveWebSocketServer.websocketSessionMap.get(ReserveWebSocketServer.userWebSocketMap.get(userEmail.get())).getAsyncRemote().sendText("Session Terminated");
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    ObjectNode notification = objectMapper.createObjectNode();
+                    notification.put("notification", "Your tutoring session has ended.");
+
+                    ReserveWebSocketServer.websocketSessionMap.get(ReserveWebSocketServer.userWebSocketMap.get(userEmail.get())).getAsyncRemote().sendText(objectMapper.writeValueAsString(notification));
                     return "Success";
                 } else {
                     return "Failed";
@@ -213,7 +217,8 @@ public class TutorResource {
                                          @QueryParam("userEmail") Optional<String> userEmail) throws Exception {
 
         if (!tutorEmail.isPresent() || !userEmail.isPresent() || !ReserveWebSocketServer.reserveSessionMap.containsKey(userEmail.get())) {
-            throw new Exception("wrong parameters");
+            //throw new Exception("wrong parameters");
+            return "session does not exist";
         }
 
         boolean success = reserveSessionSemaphore.tryAcquire(1000, TimeUnit.MILLISECONDS);

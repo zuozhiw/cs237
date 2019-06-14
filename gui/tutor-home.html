@@ -40,6 +40,16 @@ cursor: pointer;
 
 <body style="line-height: 0;">
 <div id="map" style="width:100vw; height: 100vh"></div>
+<div id="search">
+<div class="row"><div class="col-sm-6"></div>
+  <div class="col-sm-6" id="sessionMsg" style="display:none;" ><span style="padding-top:22;"><button class='btn btn-primary btn-sm' onclick="endSession()"> End Session</button></span></div>
+            </div>
+            <div class="row"></div>
+            <div class="row">
+                <div class="col-sm-2"></div>
+                <div class="col-sm-6 alert alert-primary" role="alert" id="alertMsg" style="display: none;"></div>
+            </div>
+          </div>
 </body>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
@@ -61,6 +71,26 @@ const map = new mapboxgl.Map({
       zoom: 15
     });
 
+function endSession(){
+  console.log('ending session');
+  if(sessionStorage.getItem('userEmail')){
+    jQuery.get(`${userData.origin}/api/tutor/terminate?userEmail=`+sessionStorage.getItem('userEmail'))
+      .always(res => {
+        console.log(res);
+        let popupHtml = undefined;
+        if (res.status === 200 && res.responseText.toLowerCase() === 'success') {
+          $('#sessionMsg').hide();
+          if(popup){
+            popup.remove();
+          }
+          $('#alertMsg').html("Session Ended Successfully.");
+          $('#alertMsg').show();
+          $('#alertMsg').delay(2000).fadeOut('slow');
+          sessionStorage.removeItem('userEmail');
+        }
+      })
+  }
+}
 
 function onAcceptRequest() {
   console.log('accept request');
@@ -73,6 +103,8 @@ function onAcceptRequest() {
       let popupHtml = undefined;
       if (res.status === 200 && res.responseText.toLowerCase() === 'success') {
         popupHtml = `<p>go meet the user</p>`
+        sessionStorage.setItem("userEmail", userData.userEmail);
+        $('#sessionMsg').show();
       } else {
         popupHtml = `<p>${res.responseText}</p>`
       }
@@ -87,7 +119,7 @@ function onRequestTutor(data) {
   userData = data;
   var el = document.createElement('div');
   el.id = 'marker';
-  
+
   var marker = new mapboxgl.Marker(el)
     .setLngLat(data.userCoordinates)
     .addTo(map);
