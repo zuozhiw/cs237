@@ -73,7 +73,7 @@ public class TokenResource {
 
                 for (int i=0; i<peers.size(); i++){
                     Request request = new Request.Builder()
-                            .url(peers.get(i)+"/api/token/requestToken")
+                            .url(peers.get(i)+"/api/token/request-token")
                             .build();
                     try {
                         Response response = okHttpClient.newCall(request).execute();
