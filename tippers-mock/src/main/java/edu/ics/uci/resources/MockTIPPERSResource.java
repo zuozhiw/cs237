@@ -26,7 +26,7 @@ public class MockTIPPERSResource {
         tippersStore.put("avinask1@uci.edu", new MockTippersPayload("Lecture Hall", 1200, 1, "PCB"));
         tippersStore.put("sadeem.alsudais@gmail.com", new MockTippersPayload("SH", 128, 1, "SH"));
         tippersStore.put("yiheng@uci.edu", new MockTippersPayload("Student Affairs", 352, 3, "ICS"));
-        tippersStore.put("yuehw@uci.edu", new MockTippersPayload("ISG", 2060, 2, "DBH"));
+        tippersStore.put("yuehw@uci.edu", new MockTippersPayload("SH", 128, 1, "SH"));
 
 //        tippersStore.put("mno@uci.edu", new MockTippersPayload("ARC", 100, 1, "ARC"));
     }

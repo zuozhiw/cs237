@@ -94,10 +94,33 @@ function onUserNotification(notification) {
 }
 
 function onTutorFound(data) {
+    sessionStorage.setItem("tutorEmail", data.found);
+
     var popup = new mapboxgl.Popup({closeOnClick: false})
       .setLngLat(data.coordinates)
-      .setHTML(`<p>Meet ${data.found} here :)</p>`)
+      .setHTML(`<p>Meet ${data.found} here :)</p>
+      <p>You can start chat here:</p><br>
+      <div id='chat-content'></div>
+      <input id='chat-input' />
+      `)
       .addTo(map);
+
+      $('#chat-input').keydown(event => {
+            if (event.keyCode === 13) {
+              var chatMessage = $('#chat-input').val();
+              
+              var messageJson = {
+                "chatMessage": chatMessage,
+                "sender": sessionStorage.getItem("userEmail"),
+                "receiver": sessionStorage.getItem("tutorEmail")
+              }
+
+              socket.send(JSON.stringify(messageJson));
+              $("#chat-content").append(`<p>${sessionStorage.getItem("userEmail")}:  ${chatMessage}</p>`)
+              $('#chat-input').val('');
+            }
+          })
+
 }
 
 socket.onopen = function(e) {
@@ -105,11 +128,16 @@ socket.onopen = function(e) {
 };
 
 socket.onmessage = function(event) {
+
   console.log(event.data);
 
   var dataStr = event.data;
   
-  if (dataStr.includes("found")) {
+  if (dataStr.includes("chatMessage")) {
+    chatMesssageReceived = JSON.parse(dataStr);
+    $("#chat-content").append(`<p>${chatMesssageReceived.sender}: ${chatMesssageReceived.chatMessage}</p>`)
+  } 
+  else if (dataStr.includes("found")) {
     // found response
     onTutorFound(JSON.parse(dataStr));
   }

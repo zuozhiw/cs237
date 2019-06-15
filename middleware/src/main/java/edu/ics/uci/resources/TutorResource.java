@@ -22,8 +22,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static edu.ics.uci.resources.ReserveWebSocketServer.reserveSessionSemaphore;
-import static edu.ics.uci.resources.ReserveWebSocketServer.tippersResponseMap;
+import static edu.ics.uci.resources.ReserveWebSocketServer.*;
 
 @Path("/tutor")
 @Produces(MediaType.APPLICATION_JSON)
@@ -191,6 +190,7 @@ public class TutorResource {
                     } catch (IOException e) {
 
                     }
+                    userWebSocketMap.remove(reserveSessionMap.get(userEmail.get()).getSelectedTutorEmail());
                     ReserveWebSocketServer.reserveSessionMap.remove(userEmail.get());
                     //TEST ONLY
                     ObjectMapper objectMapper = new ObjectMapper();

@@ -50,7 +50,7 @@ public class TokenResource {
     }
 
     @GET
-    @Path("/addPeer")
+    @Path("/add-peer")
     public String addPeer(@QueryParam("peer") Optional<String> peer){
         if (peer.isPresent()){
             peers.add(peer.get());

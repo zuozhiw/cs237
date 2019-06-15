@@ -126,9 +126,25 @@ public class ReserveWebSocketServer {
     }
 */
 
+    public void handleChat(final Session session, String message) throws Exception {
+        System.out.println(message);
+
+        ChatMessage chatMessage = OBJECT_MAPPER.readValue(message, ChatMessage.class);
+        userWebSocketMap.put(chatMessage.getSender(), session.getId());
+
+        // find the receiver's websocket
+        Session receiverSession = websocketSessionMap.get(userWebSocketMap.get(chatMessage.getReceiver()));
+        receiverSession.getAsyncRemote().sendText(message);
+    }
+
 
     @OnMessage
     public void myOnMsg(final Session session, String message) throws Exception{
+        if (message.contains("chatMessage")) {
+            this.handleChat(session, message);
+            return;
+        }
+
         try{
             UserRequestBean userRequest = OBJECT_MAPPER.readValue(message, UserRequestBean.class);
             String userEmail = userRequest.getUserEmail();

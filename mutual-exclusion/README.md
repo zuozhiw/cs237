@@ -4,17 +4,13 @@ How to start the mutual exclusion module
 ---
 
 1. Run `mvn clean install` to build your application
-2. Start application with `java -jar target/cs237-1.0-SNAPSHOT.jar server config.yml`
+2. Start application with `java -jar target/cs237-mutual-exclusion-1.0-SNAPSHOT.jar server config.yml`
 3. To check that your application is running enter url `http://localhost:8180`
 
-Health Check
----
 
-To see your applications health enter url `http://localhost:8181/healthcheck`
-
-Start the mutual exclusion module on a different port
+Procedures to create tokens:
 ---
-1. Modify config.yml to change BOTH the application port and admin port
-2. Run `mvn clean install` to build your application
-3. Start application with `java -jar target/cs237-1.0-SNAPSHOT.jar server config.yml`
-4. To check that your application is running enter url `http://localhost:[YOUR CHOSEN PORT NUMBER]`
+1. Create token with an ID (any positive integer), `GET /api/token/create-token?id=1`
+2. For each mutual exclusion server, inform the peer's address, `GET /api/token/add-peer?peer=http://peerhost:peerport`
+3. To acquire a token, use `GET /api/token/acquire`
+4. To release a token, use `GET /api/token/release`
